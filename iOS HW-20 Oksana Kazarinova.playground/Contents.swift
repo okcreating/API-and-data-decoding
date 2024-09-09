@@ -15,7 +15,7 @@ public struct Card: Decodable {
     var artist: String?
 }
 
-final class NetworkManager: ObservableObject {
+final class NetworkManager {
 
     // MARK: URL Creation
 
@@ -35,13 +35,17 @@ final class NetworkManager: ObservableObject {
 
     // MARK: Errors
 
-    enum NetworkError: Error {
+    enum NetworkError: String, Error, LocalizedError {
         case noAccess
         case badRequest
         case forbidden
         case notFound
         case internalServerError
         case serviceUnavailable
+
+        var errorDescription: String? {
+            return NSLocalizedString(rawValue, comment: "")
+        }
     }
 
     // MARK: URL Request
@@ -105,9 +109,18 @@ var cardsInformation = NetworkManager()
 cardsInformation.getData(path:.v1Cards, queryItems: [URLQueryItem(name: "name", value: "Opt|Black Lotus")]) { result in
     switch result {
     case .success(let cards):
-        print(cards.cards.forEach( { card in
-            print("\(card.name.uppercased()) card:\ncmc: \(card.cmc ?? 0)\nset name: \(card.setName)\nnumber: \(card.number ?? "")\npower: \(card.power ?? "Doesn't matter")\nartist: \(card.artist ?? "unknowm")\n")
-        }))
+        cards.cards.forEach( { card in
+            if card.name == "Opt" || card.name == "Black Lotus" {
+                print("""
+                    \(card.name.uppercased()) card:
+                    cmc: \(card.cmc ?? 0)
+                    set name: \(card.setName)
+                    number: \(card.number ?? "")
+                    power: \(card.power ?? "Doesn't matter")
+                    artist: \(card.artist ?? "unknowm")\n
+                    """)
+                }
+            })
     case .failure(let failure):
         print(failure.localizedDescription)
     }
